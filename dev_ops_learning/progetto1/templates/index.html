@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pannello di Controllo Utenti</title>
+    <style>section { margin-bottom: 30px; padding: 10px; border: 1px solid #ccc; }</style>
+</head>
+<body>
+
+    <section>
+        <h2>1. Tutti gli Utenti</h2>
+        <button onclick="caricaUtenti()">Mostra Tutti</button>
+        <div id="lista-utenti"></div>
+    </section>
+
+    <section>
+        <h2>2. Ricerca Avanzata</h2>
+        <input id="r-nome" placeholder="Nome">
+        <input id="r-cognome" placeholder="Cognome">
+        <input id="r-email" placeholder="Email">
+        <input id="r-id" placeholder="ObjectID">
+        <button onclick="cercaAvanzata()">Cerca</button>
+        <div id="risultato-ricerca"></div>
+    </section>
+
+    <section>
+        <h2>3. Modifica Utente (tramite ID)</h2>
+        <input id="m-id" placeholder="Inserisci ID">
+        <input id="m-nome" placeholder="Nuovo Nome">
+        <input id="m-cognome" placeholder="Nuovo Cognome">
+        <input id="m-email" placeholder="Nuova Email">
+        <button onclick="modificaUtente()">Applica Modifiche</button>
+    </section>
+
+    <section>
+        <h2>4. Inserimento Multiplo (JSON)</h2>
+        <textarea id="json-input" rows="5" cols="40" placeholder='[{"nome":"Pino", "email":"p@p.it"}]'></textarea><br>
+        <button onclick="aggiungiMulti()">Invia JSON</button>
+    </section>
+
+<script>
+    // 1. Corretto il nome in caricaUtenti per corrispondere al bottone
+    function caricaUtenti() {
+        const contenitore = document.getElementById('lista-utenti');
+        const bottone = event.target; 
+
+        if (contenitore.innerText !== "") {
+            contenitore.innerText = "";
+            bottone.innerText = "Mostra tutti gli utenti";
+        } else {
+            fetch('/utenti')
+                .then(res => res.json())
+                .then(data => {
+                    contenitore.innerText = JSON.stringify(data, null, 2);
+                    bottone.innerText = "Nascondi elenco";
+                });
+        }
+    }
+
+    // 2. Ricerca Avanzata
+    function cercaAvanzata() {
+        let body = {};
+        if(document.getElementById('r-id').value) body.id = document.getElementById('r-id').value;
+        if(document.getElementById('r-nome').value) body.nome = document.getElementById('r-nome').value;
+        if(document.getElementById('r-cognome').value) body.cognome = document.getElementById('r-cognome').value;
+        if(document.getElementById('r-email').value) body.email = document.getElementById('r-email').value;
+
+        fetch('/utenti/cerca', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        }).then(res => res.json()).then(data => {
+            document.getElementById('risultato-ricerca').innerText = JSON.stringify(data, null, 2);
+        });
+    }
+
+    // 3. Modifica (Aggiunta la fetch)
+    function modificaUtente() {
+        let id = document.getElementById('m-id').value;
+        if (!id) { alert("Inserisci un ID!"); return; }
+
+        let updateData = {};
+        if(document.getElementById('m-nome').value) updateData.nome = document.getElementById('m-nome').value;
+        if(document.getElementById('m-cognome').value) updateData.cognome = document.getElementById('m-cognome').value;
+        if(document.getElementById('m-email').value) updateData.email = document.getElementById('m-email').value;
+        
+        fetch('/aggiorna-id/' + id, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(updateData)
+        })
+        .then(res => res.json())
+        .then(data => alert(data.message));
+    }
+
+    // 4. Multiplo
+    function aggiungiMulti() {
+        let json = JSON.parse(document.getElementById('json-input').value);
+        fetch('/aggiungi-molti', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(json)
+        }).then(res => res.json()).then(data => alert(data.message));
+    }
+</script>
+</body>
+</html>

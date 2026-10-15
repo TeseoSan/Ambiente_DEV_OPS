@@ -1,0 +1,29 @@
+from flask import Flask, request, jsonify
+from pymongo import MongoClient
+
+app = Flask(__name__)
+
+# Connessione a MongoDB
+#client = MongoClient("mongodb://localhost:27017/")  vecchia 
+#inserita su suggerimento di gelsomino
+client = MongoClient("mongodb://mongo:27017/")
+db = client["mio_database"]
+collection = db["utenti"]
+
+# Endpoint 1: Inserire un nuovo utente (POST)
+@app.route("/aggiungi", methods=["POST"])
+def aggiungi_utente():
+    data = request.json
+    result = collection.insert_one(data)
+    return jsonify({"message": "Utente inserito!", "id": str(result.inserted_id)}), 201
+
+# Endpoint 2: Recuperare tutti gli utenti (GET)
+@app.route("/utenti", methods=["GET"])
+def ottieni_utenti():
+    utenti = list(collection.find({}, {"_id": 0}))
+    return jsonify(utenti), 200
+
+if __name__ == "__main__":
+    app.run(debug=True)
+#aggiunta di gelsomino perchè non rispondeva ne localhost ne 127.0.0.1
+    app.run(host="0.0.0.0", port=5000, debug=True)
