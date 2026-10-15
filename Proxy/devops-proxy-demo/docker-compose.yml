@@ -5,7 +5,7 @@ services:
     container_name: my_proxy
     ports:
       # Espone la porta 80 del tuo computer mappandola sulla 80 del container
-      - "80:80"
+      - "8080:80"
     volumes:
       # Montiamo la nostra configurazione dentro al container
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
